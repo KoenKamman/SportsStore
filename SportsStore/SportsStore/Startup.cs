@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ namespace SportsStore
     public class Startup
     {
 
-	    public IConfigurationRoot Configuration { get; }
+		public IConfigurationRoot Configuration { get; }
 
 	    public Startup(IHostingEnvironment env)
 	    {
@@ -31,8 +32,10 @@ namespace SportsStore
 		// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 		public void ConfigureServices(IServiceCollection services)
         {
-	        services.AddTransient<IProductRepository,
-		        FakeProductRepository>();
+			services.AddDbContext<ApplicationDbContext>(options =>
+		        options.UseSqlServer(
+			        Configuration["Data:SportStoreProducts:ConnectionString"]));
+	        services.AddTransient<IProductRepository, EFProductRepository>();
 
 			// Add framework services.
 			services.AddMvc();
@@ -63,6 +66,7 @@ namespace SportsStore
 					name: "default",
 					template: "{controller=Product}/{action=List}/{id?}");
 			});
+			SeedData.EnsurePopulated(app);
 		}
 	}
 }
